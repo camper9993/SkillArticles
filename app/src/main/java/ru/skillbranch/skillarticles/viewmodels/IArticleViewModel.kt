@@ -44,9 +44,7 @@ interface IArticleViewModel {
      * необходимо отобразить сообщение пользователю "Add to bookmarks" или "Remove from bookmarks"
      * в соответствии с текущим состоянием
      */
-    fun handleBookmark() {
-        TODO()
-    }
+    fun handleBookmark()
 
     /**
      * добавление/удалние статьи в понравившееся, обрабока нажатия на кнопку btn_like

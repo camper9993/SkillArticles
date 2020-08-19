@@ -1,5 +1,6 @@
 package ru.skillbranch.skillarticles.viewmodels
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import ru.skillbranch.skillarticles.data.ArticleData
 import ru.skillbranch.skillarticles.data.ArticlePersonalInfo
@@ -70,6 +71,7 @@ class ArticleViewModel(private val articleId : String) : BaseViewModel<ArticleSt
     }
 
     fun handleLike() {
+        Log.e("ArticleViewModel", "handle like: ")
         val toggleLike = {
             val info = currentState.toArticlePersonalInfo()
             repository.updateArticlePersonalInfo(info.copy(isLike = !info.isLike))
@@ -77,7 +79,7 @@ class ArticleViewModel(private val articleId : String) : BaseViewModel<ArticleSt
 
         toggleLike()
 
-        val msg  = if(currentState.isLike) Notify.TextMessage("Mark is liked")
+        val msg  = if(!currentState.isLike) Notify.TextMessage("Mark is liked")
         else {
             Notify.ActionMessage("Don't like anymore",
             "No, still like it",
