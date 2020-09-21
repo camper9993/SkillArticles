@@ -8,6 +8,9 @@ import ru.skillbranch.skillarticles.data.repositories.ArticleRepository
 import ru.skillbranch.skillarticles.extensions.data.toAppSettings
 import ru.skillbranch.skillarticles.extensions.data.toArticlePersonalInfo
 import ru.skillbranch.skillarticles.extensions.format
+import ru.skillbranch.skillarticles.viewmodels.base.BaseViewModel
+import ru.skillbranch.skillarticles.viewmodels.base.IViewModelState
+import ru.skillbranch.skillarticles.viewmodels.base.Notify
 
 class ArticleViewModel(private val articleId : String) : BaseViewModel<ArticleState>(ArticleState()) {
 
@@ -117,7 +120,21 @@ class ArticleViewModel(private val articleId : String) : BaseViewModel<ArticleSt
     fun handleSearchQuery(query : String?) {
         updateState { it.copy(searchQuery = query) }
     }
+
+    fun handleSearchMode(isSearch: Boolean) {
+        updateState { it.copy(isSearch = isSearch) }
+    }
+
+    fun handleUpResult() {
+        TODO("Not yet implemented")
+    }
+
+    fun handleDownResult() {
+        TODO("Not yet implemented")
+    }
 }
+
+
 
 data class ArticleState (
     val isAuth : Boolean = false,
@@ -141,8 +158,12 @@ data class ArticleState (
     val poster : String? = null,
     val content : List<Any> = emptyList(),
     val reviews : List<Any> = emptyList()
+) : IViewModelState {
+    override fun save(outState: android.os.Bundle) {
+        TODO("Not yet implemented")
+    }
 
-
-
-
-)
+    override fun restore(savedState: android.os.Bundle) {
+        TODO("Not yet implemented")
+    }
+}
