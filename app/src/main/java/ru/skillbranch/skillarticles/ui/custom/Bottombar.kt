@@ -6,7 +6,6 @@ import android.os.Parcelable
 import android.util.AttributeSet
 import android.view.View
 import android.view.ViewAnimationUtils
-import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.animation.doOnEnd
@@ -37,6 +36,7 @@ class Bottombar @JvmOverloads constructor(
 
     override fun onSaveInstanceState(): Parcelable? {
         val savedState = SavedState(super.onSaveInstanceState())
+        savedState.ssIsSearchMode = isSearchMode
         return savedState
     }
 
@@ -80,7 +80,7 @@ class Bottombar @JvmOverloads constructor(
             0f,
             endRadius
         )
-        va.doOnEnd {reveal.isVisible = false}
+        va.doOnEnd {reveal.isVisible = true}
         va.start()
     }
 

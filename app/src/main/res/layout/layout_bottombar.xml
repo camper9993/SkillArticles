@@ -55,19 +55,19 @@
             android:id="@+id/reveal"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
+            android:layout_marginBottom="0dp"
             android:background="@color/color_on_article_bar"
             android:orientation="horizontal"
-            android:visibility="visible"
+            android:visibility="gone"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" >
+            app:layout_constraintTop_toTopOf="parent">
                 <ImageView
                     android:id="@+id/btn_search_close"
                     android:src="@drawable/ic_close_black_24dp"
                     style="@style/BottomSearchBarIcon"
-                    android:tint="@android:color/white"
-                        />
+                    app:tint="@android:color/white" />
                 <TextView
                     android:id="@+id/tv_search_result"
                     android:layout_width="wrap_content"
@@ -86,14 +86,12 @@
                     android:id="@+id/btn_result_down"
                     android:src="@drawable/ic_keyboard_arrow_down_black_24dp"
                     style="@style/BottomSearchBarIcon"
-                    android:tint="@android:color/white"
-                    />
+                    app:tint="@android:color/white" />
                 <ImageView
                     android:id="@+id/btn_result_up"
                     android:src="@drawable/ic_keyboard_arrow_up_black_24dp"
                     style="@style/BottomSearchBarIcon"
-                    android:tint="@android:color/white"
-                    />
+                    app:tint="@android:color/white" />
         </LinearLayout>
 
 </merge>

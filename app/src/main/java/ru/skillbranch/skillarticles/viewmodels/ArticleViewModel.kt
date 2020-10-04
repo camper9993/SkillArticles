@@ -1,6 +1,8 @@
 package ru.skillbranch.skillarticles.viewmodels
 
+import android.os.Bundle
 import android.util.Log
+import androidx.core.os.bundleOf
 import androidx.lifecycle.LiveData
 import ru.skillbranch.skillarticles.data.ArticleData
 import ru.skillbranch.skillarticles.data.ArticlePersonalInfo
@@ -8,9 +10,11 @@ import ru.skillbranch.skillarticles.data.repositories.ArticleRepository
 import ru.skillbranch.skillarticles.extensions.data.toAppSettings
 import ru.skillbranch.skillarticles.extensions.data.toArticlePersonalInfo
 import ru.skillbranch.skillarticles.extensions.format
+import ru.skillbranch.skillarticles.extensions.indexesOf
 import ru.skillbranch.skillarticles.viewmodels.base.BaseViewModel
 import ru.skillbranch.skillarticles.viewmodels.base.IViewModelState
 import ru.skillbranch.skillarticles.viewmodels.base.Notify
+import java.util.*
 
 class ArticleViewModel(private val articleId : String) : BaseViewModel<ArticleState>(ArticleState()) {
 
@@ -118,22 +122,24 @@ class ArticleViewModel(private val articleId : String) : BaseViewModel<ArticleSt
     }
 
     fun handleSearchQuery(query : String?) {
-        updateState { it.copy(searchQuery = query) }
+        query ?: return
+        val result = (currentState.content.firstOrNull() as? String).indexesOf(query).map{it to it + query.length}
+        updateState { it.copy(searchQuery = query, searchResults = result) }
     }
 
     fun handleSearchMode(isSearch: Boolean) {
-        updateState { it.copy(isSearch = isSearch) }
+        updateState { it.copy(isSearch = isSearch, isShowMenu = false, searchPosition =  0) }
     }
 
     fun handleUpResult() {
-        TODO("Not yet implemented")
+        updateState { it.copy(searchPosition = it.searchPosition.dec()) }
     }
 
     fun handleDownResult() {
-        TODO("Not yet implemented")
+        updateState { it.copy(searchPosition = it.searchPosition.inc()) }
     }
-}
 
+}
 
 
 data class ArticleState (
@@ -159,11 +165,23 @@ data class ArticleState (
     val content : List<Any> = emptyList(),
     val reviews : List<Any> = emptyList()
 ) : IViewModelState {
-    override fun save(outState: android.os.Bundle) {
-        TODO("Not yet implemented")
+    override fun save(outState: Bundle) {
+        outState.putAll(
+            bundleOf(
+                "isSearch" to isSearch,
+                "searchQuery" to searchQuery,
+                "searchResults" to searchResults,
+                "searchPosition" to searchPosition
+            )
+        )
     }
 
-    override fun restore(savedState: android.os.Bundle) {
-        TODO("Not yet implemented")
+    override fun restore(savedState: Bundle): ArticleState {
+        return  copy(
+            isSearch = savedState["isSearch"] as Boolean,
+            searchQuery = savedState["searchQuery"] as? String,
+            searchResults = savedState["searchResults"] as List<Pair<Int, Int>>,
+            searchPosition = savedState["searchPosition"] as Int
+        )
     }
 }
