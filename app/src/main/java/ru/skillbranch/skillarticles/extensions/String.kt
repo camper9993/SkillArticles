@@ -1,11 +1,19 @@
 package ru.skillbranch.skillarticles.extensions
 
-fun String?.indexesOf(substr: String, ignoreCase: Boolean = true): List<Int> {
-    val indexes = mutableListOf<Int>()
-    var tmp = this?.indexOf(substr, 0, ignoreCase)
-    while (tmp != -1 && substr != "") {
-        indexes.add(tmp!!)
-        tmp = this?.indexOf(substr, tmp + 1, ignoreCase)
+fun String?.indexesOf(
+    substr: String,
+    ignoreCase: Boolean = true
+): List<Int> {
+    val result = mutableListOf<Int>()
+    if (!this.isNullOrEmpty() && substr.isNotEmpty()) {
+        var index = 0
+        while (index > -1) {
+            index = indexOf(substr, index, ignoreCase)
+            if (index > -1) {
+                result.add(index)
+                index += substr.length
+            }
+        }
     }
-    return indexes
+    return result
 }

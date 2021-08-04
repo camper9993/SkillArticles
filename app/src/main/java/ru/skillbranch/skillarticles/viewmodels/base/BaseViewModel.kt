@@ -4,11 +4,17 @@ import android.os.Bundle
 import androidx.annotation.UiThread
 import androidx.annotation.VisibleForTesting
 import androidx.lifecycle.*
-import ru.skillbranch.skillarticles.viewmodels.ArticleViewModel
+import androidx.navigation.NavOptions
+import androidx.navigation.Navigator
 
-abstract class BaseViewModel<T: IViewModelState>(initState: T) : ViewModel() {
+abstract class BaseViewModel<T : IViewModelState>(
+    private val handleState: SavedStateHandle,
+    initState: T
+) : ViewModel() {
     @VisibleForTesting(otherwise = VisibleForTesting.PROTECTED)
     val notifications = MutableLiveData<Event<Notify>>()
+    @VisibleForTesting(otherwise = VisibleForTesting.PROTECTED)
+    val navigation = MutableLiveData<Event<NavigationCommand>>()
 
     /***
      * Инициализация начального состояния аргументом конструктоа, и объявления состояния как
@@ -33,7 +39,7 @@ abstract class BaseViewModel<T: IViewModelState>(initState: T) : ViewModel() {
      * модифицированное состояние, которое присваивается текущему состоянию
      */
     @UiThread
-    protected inline fun updateState(update: (currentState: T) -> T) {
+    inline fun updateState(update: (currentState: T) -> T) {
         val updatedState: T = update(currentState)
         state.value = updatedState
     }
@@ -48,12 +54,17 @@ abstract class BaseViewModel<T: IViewModelState>(initState: T) : ViewModel() {
         notifications.value = Event(content)
     }
 
+    open fun navigate(command: NavigationCommand) {
+        navigation.value = Event(command)
+    }
+
     /***
      * более компактная форма записи observe() метода LiveData принимает последним аргумент лямбда
      * выражение обрабатывающее изменение текущего стостояния
      */
     fun observeState(owner: LifecycleOwner, onChanged: (newState: T) -> Unit) {
         state.observe(owner, Observer { onChanged(it!!) })
+
     }
 
     /***
@@ -62,7 +73,13 @@ abstract class BaseViewModel<T: IViewModelState>(initState: T) : ViewModel() {
      * реализует данное поведение с помощью EventObserver
      */
     fun observeNotifications(owner: LifecycleOwner, onNotify: (notification: Notify) -> Unit) {
-        notifications.observe(owner, EventObserver { onNotify(it) })
+        notifications.observe(owner,
+            EventObserver { onNotify(it) })
+    }
+
+    fun observeNavigation(owner: LifecycleOwner, onNavigate: (command: NavigationCommand) -> Unit) {
+        navigation.observe(owner,
+            EventObserver { onNavigate(it) })
     }
 
     /***
@@ -79,17 +96,18 @@ abstract class BaseViewModel<T: IViewModelState>(initState: T) : ViewModel() {
         }
     }
 
-    fun saveState(outState: Bundle) {
-       currentState.save(outState)
+    open fun saveState() {
+        currentState.save(handleState)
     }
 
     @Suppress("UNCHECKED_CAST")
-    fun restoreState(savedState: Bundle) {
-        state.value = currentState.restore(savedState) as T
+    fun restoreState() {
+        val restoredState = currentState.restore(handleState) as T
+        if(currentState == restoredState) return
+        state.value = currentState.restore(handleState) as T
     }
+
 }
-
-
 
 class Event<out E>(private val content: E) {
     var hasBeenHandled = false
@@ -123,18 +141,37 @@ class EventObserver<E>(private val onEventUnhandledContent: (E) -> Unit) : Obser
     }
 }
 
-sealed class Notify(val message: String) {
-    data class TextMessage(val msg: String) : Notify(msg)
+sealed class Notify() {
+    abstract val message: String
+
+    data class TextMessage(override val message: String) : Notify()
 
     data class ActionMessage(
-        val msg: String,
+        override val message: String,
         val actionLabel: String,
         val actionHandler: (() -> Unit)
-    ) : Notify(msg)
+    ) : Notify()
 
     data class ErrorMessage(
-        val msg: String,
+        override val message: String,
         val errLabel: String?,
         val errHandler: (() -> Unit)?
-    ) : Notify(msg)
+    ) : Notify()
+}
+
+sealed class NavigationCommand() {
+    data class To(
+        val destination: Int,
+        val args: Bundle? = null,
+        val options: NavOptions? = null,
+        val extras: Navigator.Extras? = null
+    ) : NavigationCommand()
+
+    data class StartLogin(
+        val privateDestination: Int? = null
+    ) : NavigationCommand()
+
+    data class FinishLogin(
+        val privateDestination: Int? = null
+    ) : NavigationCommand()
 }
