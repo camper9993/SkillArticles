@@ -11,7 +11,7 @@ object DbManager {
         App.applicationContext(),
         AppDb::class.java,
         AppDb.DATABASE_NAME
-    )
+    ).build()
 }
 
 @Database(
@@ -24,7 +24,7 @@ object DbManager {
         ArticleContent::class],
     version = AppDb.DATABASE_VERSION,
     exportSchema = false,
-    views = [ArticleItem::class]
+    views = [ArticleItem::class, ArticleFull::class]
 )
 @TypeConverters(DateConverter::class)
 abstract class AppDb : RoomDatabase() {

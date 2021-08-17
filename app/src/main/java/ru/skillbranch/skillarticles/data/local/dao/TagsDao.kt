@@ -1,5 +1,6 @@
 package ru.skillbranch.skillarticles.data.local.dao
 
+import androidx.lifecycle.LiveData
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
@@ -13,7 +14,7 @@ interface TagsDao : BaseDao<Tag> {
         SELECT tag FROM article_tags
         ORDER BY use_count DESC
     """)
-    fun findTags(): List<String>
+    fun findTags(): LiveData<List<String>>
 
     @Query("""
         UPDATE article_tags SET use_count = use_count + 1
