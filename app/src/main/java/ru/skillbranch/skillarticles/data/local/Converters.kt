@@ -15,5 +15,5 @@ class DateConverter {
 
 class MarkdownConverter {
     @TypeConverter
-    fun toMarkDown(content: String?): List<MarkdownElement>? = content?.let { MarkdownParser.parse(it) }
+    fun toMarkdown(content: String?): List<MarkdownElement>? = content?.let { MarkdownParser.parse(it) }
 }

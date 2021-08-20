@@ -1,14 +1,13 @@
 package ru.skillbranch.skillarticles.data.repositories
 
+import androidx.annotation.VisibleForTesting
 import androidx.lifecycle.LiveData
 import androidx.paging.DataSource
 import androidx.sqlite.db.SimpleSQLiteQuery
 import ru.skillbranch.skillarticles.data.NetworkDataHolder
 import ru.skillbranch.skillarticles.data.local.DbManager.db
-import ru.skillbranch.skillarticles.data.local.entities.ArticleItem
-import ru.skillbranch.skillarticles.data.local.entities.ArticleTagXRef
-import ru.skillbranch.skillarticles.data.local.entities.CategoryData
-import ru.skillbranch.skillarticles.data.local.entities.Tag
+import ru.skillbranch.skillarticles.data.local.dao.*
+import ru.skillbranch.skillarticles.data.local.entities.*
 import ru.skillbranch.skillarticles.data.remote.res.ArticleRes
 import ru.skillbranch.skillarticles.extensions.data.toArticle
 import ru.skillbranch.skillarticles.extensions.data.toArticleCounts
@@ -27,11 +26,26 @@ interface IArticlesRepository {
 object ArticlesRepository : IArticlesRepository{
 
     private val network = NetworkDataHolder
-    private val articlesDao = db.articlesDao()
-    private val articlesCountsDao = db.articleCountsDao()
-    private val categoriesDao = db.categoriesDao()
-    private val tagsDao = db.tagsDao()
-    private val articlePersonalDao = db.articlePersonalInfosDao()
+    private var articlesDao = db.articlesDao()
+    private var articlesCountsDao = db.articleCountsDao()
+    private var categoriesDao = db.categoriesDao()
+    private var tagsDao = db.tagsDao()
+    private var articlePersonalDao = db.articlePersonalInfosDao()
+
+    @VisibleForTesting(otherwise = VisibleForTesting.NONE)
+    fun setupTestDao(
+        articlesDao: ArticlesDao,
+        articleCountsDao: ArticleCountsDao,
+        categoriesDao: CategoriesDao,
+        tagsDao: TagsDao,
+        articlePersonalDao: ArticlePersonalInfosDao
+    ) {
+        this.articlesDao = articlesDao
+        this.articlesCountsDao = articlesCountsDao
+        this.categoriesDao = categoriesDao
+        this.tagsDao = tagsDao
+        this.articlePersonalDao = articlePersonalDao
+    }
 
     override fun loadArticlesFromNetwork(start: Int, size: Int): List<ArticleRes> =
         network.findArticlesItem(start, size)
