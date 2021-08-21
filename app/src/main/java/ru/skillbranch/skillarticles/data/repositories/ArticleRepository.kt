@@ -72,7 +72,7 @@ object ArticleRepository : IArticleRepository{
     }
 
     override fun updateSettings(appSettings: AppSettings) {
-        //TODO
+        preferences.getAppSettings()
     }
 
     override fun fetchArticleContent(articleId: String) {

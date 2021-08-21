@@ -107,7 +107,7 @@ object ArticlesRepository : IArticlesRepository{
                 qb.appendWhere("refs.t_id = '$search'")
             }
 
-            if (isBookmark) qb.appendWhere("is_bookmark = 1")
+            if (isBookmark) qb.appendWhere("is_bookmark = 1 ")
             if (categories.isNotEmpty()) qb.appendWhere("category_id IN (${categories.joinToString(",")})")
             qb.orderBy("date")
             return qb.build()
@@ -144,7 +144,7 @@ object ArticlesRepository : IArticlesRepository{
         }
         fun build(): String {
             check(table != null) { "table must be not null" }
-            val strBuilder = StringBuilder("SELECT")
+            val strBuilder = StringBuilder("SELECT ")
                 .append("$selectColumns ")
                 .append("FROM $table ")
             if (joinTables != null)  strBuilder.append(joinTables)
