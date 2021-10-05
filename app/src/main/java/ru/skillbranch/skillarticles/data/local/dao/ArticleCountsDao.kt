@@ -4,7 +4,6 @@ import androidx.lifecycle.LiveData
 import androidx.room.Dao
 import androidx.room.Query
 import androidx.room.Transaction
-import ru.skillbranch.skillarticles.data.local.entities.Article
 import ru.skillbranch.skillarticles.data.local.entities.ArticleCounts
 
 @Dao
@@ -12,7 +11,8 @@ interface ArticleCountsDao : BaseDao<ArticleCounts> {
     @Transaction
     fun upsert(list: List<ArticleCounts>) {
         insert(list)
-            .mapIndexedNotNull {index, recordResult -> if(recordResult == -1L) list[index] else null}
+            .mapIndexed {index, recordResult -> if(recordResult == -1L) list[index] else null}
+            .filterNotNull()
             .also { if(it.isNotEmpty()) update(it) }
     }
 
@@ -42,4 +42,15 @@ interface ArticleCountsDao : BaseDao<ArticleCounts> {
         WHERE article_id = :articleId
     """)
     fun getCommentsCount(articleId: String) : LiveData<Int>
+
+    @Query("""
+        SELECT * FROM article_counts
+    """)
+    fun findArticleCounts() : LiveData<List<ArticleCounts>>
+
+    @Query("""
+        SELECT * FROM article_counts
+        WHERE article_id = :articleId
+    """)
+    fun findArticleCounts(articleId: String) : LiveData<ArticleCounts>
 }

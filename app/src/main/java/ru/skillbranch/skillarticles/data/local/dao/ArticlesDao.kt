@@ -22,18 +22,18 @@ interface ArticlesDao : BaseDao<Article>{
     @Query("""
         SELECT * FROM articles
     """)
-    fun findArticles(): List<Article>
+    fun findArticles(): LiveData<List<Article>>
 
     @Query("""
         SELECT * FROM articles
         WHERE id = :id
     """)
-    fun findArticleById(id : String): List<Article>
+    fun findArticleById(id : String): LiveData<Article>
 
     @Query("""
         SELECT * FROM ArticleItem
     """)
-    fun findArticleItems(): List<ArticleItem>
+    fun findArticleItems(): LiveData<List<ArticleItem>>
 
     @Delete
     fun delete(article: Article)
@@ -42,7 +42,7 @@ interface ArticlesDao : BaseDao<Article>{
         SELECT * FROM ArticleItem
         WHERE category_id IN (:categoryIds)
     """)
-    fun findArticleItemsByCategoryId(categoryIds: List<String>): List<ArticleItem>
+    fun findArticleItemsByCategoryId(categoryIds: List<String>): LiveData<List<ArticleItem>>
 
     @Query("""
         SELECT * FROM ArticleItem

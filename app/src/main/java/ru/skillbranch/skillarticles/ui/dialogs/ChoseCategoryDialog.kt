@@ -1,40 +1,54 @@
 package ru.skillbranch.skillarticles.ui.dialogs
 
-import android.app.AlertDialog
 import android.app.Dialog
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import android.widget.TextView
+import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.navArgs
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import ru.skillbranch.skillarticles.R
 import ru.skillbranch.skillarticles.viewmodels.articles.ArticlesViewModel
 
 class ChoseCategoryDialog : DialogFragment() {
     private val viewModel : ArticlesViewModel by activityViewModels()
-    private val selectedCategories = mutableListOf<String>()
+    private val selected = mutableListOf<String>()
     private val args : ChoseCategoryDialogArgs by navArgs()
 
+    private val categoryAdapter = CategoryAdapter { categoryId: String, isChecked: Boolean ->
+        if (isChecked) selected.add(categoryId)
+            else selected.remove(categoryId)
+    }
+
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        val categories = args.categories.toList().map { "${it.title} (${it.articlesCount})" }.toTypedArray()
-        val checked = BooleanArray(args.categories.size){
-            args.selectedCategories.contains(args.categories[it].categoryId)
+        selected.clear()
+        selected.addAll(
+            savedInstanceState?.getStringArray("checked") ?: args.selectedCategories
+        )
+        val categoryItems = args.categories.map { it.toItem(selected.contains(it.categoryId)) }
+
+        categoryAdapter.submitList(categoryItems)
+
+        //inflate list
+        val listView =
+            layoutInflater.inflate(R.layout.item_category_dialog, null) as RecyclerView
+
+        //list settings
+        with(listView) {
+            layoutManager = LinearLayoutManager(requireContext())
+            adapter = categoryAdapter
         }
-        val adb =AlertDialog.Builder(requireContext())
-            .setTitle("ChooseCategory")
-            .setPositiveButton("Apply"){ _, _ ->
-                viewModel.applyCategories(selectedCategories)
+
+        return AlertDialog.Builder(requireContext())
+            .setTitle("Chose category")
+            .setPositiveButton("Apply") { _, _ ->
+                viewModel.applyCategories(selected.toList())
             }
-            .setNegativeButton("Reset"){ _, _ ->
+            .setNegativeButton("Reset") { _, _ ->
                 viewModel.applyCategories(emptyList())
             }
-            .setMultiChoiceItems(categories, checked){dialog, which, isChecked ->
-                if (isChecked) selectedCategories.add(args.categories[which].categoryId)
-                else selectedCategories.remove(args.categories[which].categoryId)
-            }
-
-        return adb.create()
+            .setView(listView)
+            .create()
     }
 }

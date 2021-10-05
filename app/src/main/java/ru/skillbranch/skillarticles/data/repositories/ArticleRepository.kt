@@ -1,5 +1,6 @@
 package ru.skillbranch.skillarticles.data.repositories
 
+import androidx.annotation.VisibleForTesting
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.paging.DataSource
@@ -7,9 +8,14 @@ import androidx.paging.ItemKeyedDataSource
 import ru.skillbranch.skillarticles.data.NetworkDataHolder
 import ru.skillbranch.skillarticles.data.local.DbManager.db
 import ru.skillbranch.skillarticles.data.local.PrefManager
+import ru.skillbranch.skillarticles.data.local.dao.ArticleContentsDao
+import ru.skillbranch.skillarticles.data.local.dao.ArticleCountsDao
+import ru.skillbranch.skillarticles.data.local.dao.ArticlePersonalInfosDao
+import ru.skillbranch.skillarticles.data.local.dao.ArticlesDao
 import ru.skillbranch.skillarticles.data.local.entities.ArticleFull
 import ru.skillbranch.skillarticles.data.local.entities.ArticlePersonalInfo
 import ru.skillbranch.skillarticles.data.models.*
+import ru.skillbranch.skillarticles.data.remote.NetworkManager
 import ru.skillbranch.skillarticles.extensions.data.toArticleContent
 import java.lang.Thread.sleep
 import kotlin.math.abs
@@ -17,28 +23,43 @@ import kotlin.math.abs
 interface IArticleRepository {
     fun findArticle(articleId: String) : LiveData<ArticleFull>
     fun getAppSettings(): LiveData<AppSettings>
-    fun toggleLike(articleId: String)
-    fun toggleBookmark(articleId: String)
     fun isAuth(): MutableLiveData<Boolean>
-    fun loadCommentsByRange(slug: String?, size: Int, articleId: String): List<CommentItemData>
-    fun sendMessage(articleId: String, text: String, answerToSlug: String?)
-    fun loadAllComments(articleId: String, total: Int): CommentsDataFactory
-    fun decrementLike(articleId: String)
-    fun incrementLike(articleId: String)
     fun updateSettings(copy: AppSettings)
-    fun fetchArticleContent(articleId: String)
+
+
+    suspend fun toggleLike(articleId: String)
+    suspend fun toggleBookmark(articleId: String)
+    suspend fun decrementLike(articleId: String)
+    suspend fun incrementLike(articleId: String)
+    suspend fun sendMessage(articleId: String, message: String, answerToMessageId: String?)
+    suspend fun refreshCommentCount(articlesId: String)
+    suspend fun fetchArticleContent(articleId: String)
+
+    fun loadAllComments(articleId: String, total: Int, errHandler: (Throwable) -> Unit): CommentsDataFactory
     fun findArticleCommentCount(articleId: String): LiveData<Int>
 }
 
 object ArticleRepository : IArticleRepository{
 
+    private var network = NetworkManager.api
+    private var preferences = PrefManager
+    private var articleDao = db.articlesDao()
+    private var articlePersonalDao = db.articlePersonalInfosDao()
+    private var articleCountsDao = db.articleCountsDao()
+    private var articleContentDao = db.articleContentsDao()
 
-    private val network = NetworkDataHolder
-    private val preferences = PrefManager
-    private val articleDao = db.articlesDao()
-    private val articlePersonalDao = db.articlePersonalInfosDao()
-    private val articleCountsDao = db.articleCountsDao()
-    private val articleContentDao = db.articleContentsDao()
+    @VisibleForTesting(otherwise = VisibleForTesting.NONE)
+    fun setupTestDao(
+        articlesDao: ArticlesDao,
+        articlePersonalDao: ArticlePersonalInfosDao,
+        articleCountsDao: ArticleCountsDao,
+        articleContentDao: ArticleContentsDao
+    ) {
+        this.articleDao = articlesDao
+        this.articlePersonalDao = articlePersonalDao
+        this.articleCountsDao = articleCountsDao
+        this.articleContentDao = articleContentDao
+    }
 
     override fun findArticle(articleId: String): LiveData<ArticleFull> {
         return articleDao.findFullArticle(articleId)
@@ -46,16 +67,12 @@ object ArticleRepository : IArticleRepository{
 
     override fun getAppSettings(): LiveData<AppSettings> = preferences.getAppSettings() //from preferences
 
-    override fun toggleLike(articleId: String) {
+    override suspend fun toggleLike(articleId: String) {
         articlePersonalDao.toggleLikeOrInsert(articleId)
     }
 
-    override fun toggleBookmark(articleId: String) {
+    override suspend fun toggleBookmark(articleId: String) {
         articlePersonalDao.toggleBookmarkOrInsert(articleId)
-    }
-
-    override fun updateSettings(appSettings: AppSettings) {
-        //TODO
     }
 
     override fun fetchArticleContent(articleId: String) {
@@ -99,7 +116,14 @@ object ArticleRepository : IArticleRepository{
     }
 
     override fun decrementLike(articleId: String) {
-        articleCountsDao.decrementLike(articleId)
+        if (preferences.accessToken!!.isEmpty()) {
+            articleCountsDao.decrementLike(articleId)
+            return
+        }
+
+        try {
+            val res = network.decrementLike(articleId, preferences.accessToken)
+        }
     }
 
     override fun incrementLike(articleId: String) {

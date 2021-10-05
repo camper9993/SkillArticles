@@ -2,7 +2,6 @@ package ru.skillbranch.skillarticles.data.local.entities
 
 import androidx.room.*
 import ru.skillbranch.skillarticles.data.local.MarkdownConverter
-//import ru.skillbranch.skillarticles.data.local.MarkdownConverter
 import ru.skillbranch.skillarticles.data.repositories.MarkdownElement
 import java.util.*
 
